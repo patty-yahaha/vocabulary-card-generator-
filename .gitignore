@@ -1,0 +1,13 @@
+# 临时生成的HTML文件
+vocabulary-cards-*.html
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
