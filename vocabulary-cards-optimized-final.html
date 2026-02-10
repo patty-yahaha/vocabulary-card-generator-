@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>单词学习卡片</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            padding: 20px;
+        }
+
+        .card {
+            width: 100%;
+            height: 450px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+
+        .card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 30px;
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            color: #2c3e50;
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            color: #2c3e50;
+            transform: rotateY(180deg);
+            overflow-y: auto;
+        }
+
+        .word {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .pronunciation {
+            color: #2563eb;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        }
+
+        .pronunciation:hover {
+            background-color: #2563eb;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transform: scale(1.05);
+        }
+
+        .pronunciation-icon {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+        .pronunciation:hover .pronunciation-icon {
+            transform: scale(1.2);
+        }
+
+        .chinese-meaning {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1a202c;
+        }
+
+        .details-section {
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .details-section h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #374151;
+            color: #2c3e50;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 5px;
+        }
+
+        .details-section p {
+            margin-bottom: 12px;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            color: #4b5563;
+        }
+
+        .details-section strong {
+            color: #374151;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+
+        .flip-hint {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            font-size: 0.8rem;
+            color: #6b7280; opacity: 0.8;
+        }
+
+        /* 滚动条样式 */
+        .card-back::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .card-back::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+
+        .card-back::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .card-back::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>英语单词学习卡片</h1>
+
+        <div class="cards-grid" id="cardsContainer">
+            <!-- 卡片将通过JavaScript动态生成 -->
+        </div>
+    </div>
+
+    <script>
+        // 单词数据
+        const wordsData = [
+            {
+                word: "Capable",
+                chineseMeaning: "有能力的；能够……的。",
+                originalContext: "许多人原本不认为昆虫\"能够做出\"（are capable of）智能行为，但研究改变了这一看法。",
+                practicalUse: "描述个人能力（capable employee）、描述功能（capable of running fast。）"
+            },
+            {
+                word: "Obstacle",
+                chineseMeaning: "障碍；阻碍。",
+                originalContext: "在实验中，科学家设置了一个树脂玻璃板作为\"障碍\"（an obstacle），挡住了大黄蜂获取糖水的路。",
+                practicalUse: "克服困难（overcome an obstacle）、讨论职业发展的阻力。"
+            },
+            {
+                word: "Sophisticated",
+                chineseMeaning: "复杂的；精密的；老练的。",
+                originalContext: "蜜蜂要将蜂巢维持在恒温35度，需要一套非常\"精密复杂的计划\"（a sophisticated plan）。",
+                practicalUse: "形容技术（sophisticated technology）、形容人圆滑世故或品味高雅。"
+            },
+            {
+                word: "Advocate",
+                chineseMeaning: "提倡；拥护；主张。",
+                originalContext: "Thomas Radetzki 是一位养蜂人，他\"提倡\"（advocates for）一种更接近自然的养蜂方式。",
+                practicalUse: "议论文必备词汇（advocate for human rights / environmental protection）。"
+            },
+            {
+                word: "Adapt",
+                chineseMeaning: "适应；调整。",
+                originalContext: "种群的多样性是一个巨大的优势，有助于甲虫\"适应\"（adapting to）环境的威胁和变化。",
+                practicalUse: "适应新环境（adapt to university life）、改编书籍（adapted from a novel）。"
+            },
+            {
+                word: "Resemble",
+                chineseMeaning: "像；与……相似。",
+                originalContext: "相比于蜜蜂，纸黄蜂（Paper Wasps）的群落结构更\"像\"（resemble）一种松散的室友关系，而不是等级森严的蜂巢。",
+                practicalUse: "图表作文中描述趋势相似，或描述人长得像（You resemble your mother）。"
+            },
+            {
+                word: "Distinguish",
+                chineseMeaning: "区分；辨别。",
+                originalContext: "研究表明，纸黄蜂竟然能够\"区分\"（distinguish between）同类中不同的面孔。",
+                practicalUse: "辨别是非（distinguish right from wrong）、区分优劣。"
+            },
+            {
+                word: "Evaluate",
+                chineseMeaning: "评估；评价。",
+                originalContext: "在颜色实验中，黄蜂需要根据之前的经验，正确地\"评估\"（evaluate）从未见过的颜色组合。",
+                practicalUse: "工作中评估表现（evaluate performance）、分析利弊。"
+            },
+            {
+                word: "Suppress",
+                chineseMeaning: "压制；抑制；忍住。",
+                originalContext: "聪明的笨想蜂为了喝到更甜的糖水，学会了\"忍住\"（suppress）逃离高温表面的本能反应。",
+                practicalUse: "控制情绪（suppress anger）、镇压暴乱、封锁消息。"
+            },
+            {
+                word: "Distinct",
+                chineseMeaning: "独特的；明显的；截然不同的。",
+                originalContext: "昆虫并不是千篇一律的，每一只都有其\"独特的\"（distinct）性格和个性。",
+                practicalUse: "描述特征（distinct features）、强调由于不同而明显（distinct advantage）。"
+            }
+        ];
+
+        // 创建卡片HTML
+        function createCard(word, index) {
+            return `
+                <div class="card" onclick="flipCard(${index})">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <div class="word">${word}</div>
+                            <div class="pronunciation" onclick="event.stopPropagation(); playPronunciation('${word}')"><span class="pronunciation-icon">🔊</span><span>点击发音</span></div>
+                            <div class="flip-hint">点击翻转</div>
+                        </div>
+                        <div class="card-back">
+                            <div class="chinese-meaning">${wordsData[index].chineseMeaning}</div>
+                            <div class="details-section">
+                                <h3>【原文背景】</h3>
+                                <p>${wordsData[index].originalContext}</p>
+                                <h3>【实用场景】</h3>
+                                <p>${wordsData[index].practicalUse}</p>
+                            </div>
+                            <div class="flip-hint">点击返回</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 翻转卡片
+        function flipCard(index) {
+            const cards = document.querySelectorAll('.card');
+            cards[index].classList.toggle('flipped');
+        }
+
+        // 播放发音
+        function playPronunciation(word) {
+            // 使用Web Speech API
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(word);
+                utterance.lang = 'en-US';
+                utterance.rate = 0.8;
+                utterance.pitch = 1;
+                speechSynthesis.speak(utterance);
+            } else {
+                // 备用方案：使用在线TTS服务
+                const audio = new Audio(`https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(word)}&tl=en&client=tw-ob`);
+                audio.play().catch(error => {
+                    console.error('发音播放失败:', error);
+                    alert('发音功能暂时不可用，请检查浏览器设置。');
+                });
+            }
+        }
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('cardsContainer');
+
+            // 生成所有卡片
+            wordsData.forEach((word, index) => {
+                container.innerHTML += createCard(word.word, index);
+            });
+
+            // 添加键盘事件监听
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    // ESC键翻转所有卡片
+                    document.querySelectorAll('.card').forEach(card => {
+                        card.classList.remove('flipped');
+                    });
+                }
+            });
+        });
+
+        // 页面卸载时清理语音合成
+        window.addEventListener('beforeunload', function() {
+            if (speechSynthesis) {
+                speechSynthesis.cancel();
+            }
+        });
+    </script>
+</body>
+</html>
